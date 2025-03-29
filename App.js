@@ -14,6 +14,7 @@ export default function App() {
   const [selectedValue, setSelectedValue] = useState(null);
   const [dialogVisible, setDialogVisible] = useState(false);
   const [errorDialogVisible, setErrorDialogVisible] = useState(false);
+  const [cepErrorDialogVisible, setCepErrorDialogVisible] = useState(false);
 
   const handlePress = () => { setExpanded(!expanded); };
 
@@ -22,15 +23,28 @@ export default function App() {
     setExpanded(false);
   };
 
+  const [cepValido, setCepValido] = useState(true);
+
   const buscacep = (xcep) => {
+    if (xcep.length !== 8) return;
+
     let url = `https://viacep.com.br/ws/${xcep}/json/`;
 
     fetch(url)
       .then((resp) => resp.json())
       .then((dados) => {
-        console.log(dados);
-        setDados(dados);
-        setSelectedValue(dados.uf);
+        if (dados.erro) {
+          if (cepValido) {
+            setCepErrorDialogVisible(true);
+            setCepValido(false);
+          }
+          setDados({});
+          setSelectedValue(null);
+        } else {
+          setDados(dados);
+          setSelectedValue(dados.uf);
+          setCepValido(true);
+        }
       })
       .catch((x) => {
         console.log(x);
@@ -47,6 +61,7 @@ export default function App() {
 
   const handleDialogHide = () => setDialogVisible(false);
   const handleErrorDialogHide = () => setErrorDialogVisible(false);
+  const handleCepErrorDialogHide = () => setCepErrorDialogVisible(false);
 
   const handleSubmit = () => {
     handleDialogHide();
@@ -64,6 +79,7 @@ export default function App() {
   return (
     <PaperProvider>
       <View style={styles.container}>
+        <Text style={styles.textoCep}>INSIRA SEUS DADOS</Text>
         <TextInput
           label='Nome'
           mode='outlined'
@@ -76,6 +92,7 @@ export default function App() {
           value={idade}
           onChangeText={(value) => setIdade(value)} />
 
+        <Text style={styles.textoCep}>INSIRA O CEP</Text>
         <TextInput
           label="CEP"
           value={cep}
@@ -127,17 +144,45 @@ export default function App() {
           editable={false}
         />
 
-        <List.Section title='Estado'>
-          <List.Accordion title={selectedValue == null ? 'Selecione o Estado' : selectedValue}
-            expanded={expanded} onPress={handlePress}>
+        <List.Section title=''>
+          <List.Accordion
+            title={selectedValue == null ? 'Selecione o Estado' : selectedValue}
+            expanded={expanded}
+            onPress={() => {
+              if (!dados.uf) setExpanded(!expanded);
+            }}
+            disabled={!!dados.uf}
+          >
             <List.Item title="AC" onPress={() => { handleItemPress('AC'); }} />
-            <List.Item title="SP" onPress={() => { handleItemPress('SP'); }} />
+            <List.Item title="AL" onPress={() => { handleItemPress('AL'); }} />
+            <List.Item title="AP" onPress={() => { handleItemPress('AP'); }} />
+            <List.Item title="AM" onPress={() => { handleItemPress('AM'); }} />
+            <List.Item title="BA" onPress={() => { handleItemPress('BA'); }} />
+            <List.Item title="CE" onPress={() => { handleItemPress('CE'); }} />
+            <List.Item title="DF" onPress={() => { handleItemPress('DF'); }} />
+            <List.Item title="ES" onPress={() => { handleItemPress('ES'); }} />
+            <List.Item title="GO" onPress={() => { handleItemPress('GO'); }} />
+            <List.Item title="MA" onPress={() => { handleItemPress('MA'); }} />
+            <List.Item title="MT" onPress={() => { handleItemPress('MT'); }} />
+            <List.Item title="MS" onPress={() => { handleItemPress('MS'); }} />
+            <List.Item title="MG" onPress={() => { handleItemPress('MG'); }} />
+            <List.Item title="PA" onPress={() => { handleItemPress('PA'); }} />
+            <List.Item title="PB" onPress={() => { handleItemPress('PB'); }} />
+            <List.Item title="PR" onPress={() => { handleItemPress('PR'); }} />
+            <List.Item title="PE" onPress={() => { handleItemPress('PE'); }} />
+            <List.Item title="PI" onPress={() => { handleItemPress('PI'); }} />
             <List.Item title="RJ" onPress={() => { handleItemPress('RJ'); }} />
-            <List.Item title="BH" onPress={() => { handleItemPress('BH'); }} />
+            <List.Item title="RN" onPress={() => { handleItemPress('RN'); }} />
+            <List.Item title="RS" onPress={() => { handleItemPress('RS'); }} />
+            <List.Item title="RO" onPress={() => { handleItemPress('RO'); }} />
+            <List.Item title="RR" onPress={() => { handleItemPress('RR'); }} />
+            <List.Item title="SC" onPress={() => { handleItemPress('SC'); }} />
+            <List.Item title="SP" onPress={() => { handleItemPress('SP'); }} />
+            <List.Item title="SE" onPress={() => { handleItemPress('SE'); }} />
+            <List.Item title="TO" onPress={() => { handleItemPress('TO'); }} />
           </List.Accordion>
         </List.Section>
-        <Text style={styles.textoCep}>{dados.logradouro || ''}</Text>
-        
+
         <Button mode="contained" onPress={handleDialogShow} style={styles.button}>
           Enviar
         </Button>
@@ -161,6 +206,16 @@ export default function App() {
             </Dialog.Content>
             <Dialog.Actions>
               <Button onPress={handleErrorDialogHide} textColor="white">OK</Button>
+            </Dialog.Actions>
+          </Dialog>
+
+          <Dialog visible={cepErrorDialogVisible} onDismiss={handleCepErrorDialogHide}>
+            <Dialog.Title style={{ color: 'white', fontSize: 20 }}>Erro</Dialog.Title>
+            <Dialog.Content>
+              <Text style={{ color: 'white', fontSize: 18 }}>O CEP inserido não existe.</Text>
+            </Dialog.Content>
+            <Dialog.Actions>
+              <Button onPress={handleCepErrorDialogHide} textColor="white">OK</Button>
             </Dialog.Actions>
           </Dialog>
         </Portal>
